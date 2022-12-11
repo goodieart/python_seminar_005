@@ -1,9 +1,20 @@
-#import gamepy
-from random import randint as rand
+from random import randint as rand, choice
+import os
+from time import sleep
+
+clear = lambda: os.system('cls')
+
+D_EASY = 0
+D_HARD = 1
+D_HUMAN = 2
 
 player = 'X'
 cpu = 'O'
 first_player = player
+difficulty = D_EASY
+
+first_move = True
+
 map = [i for i in range(9)]
 
 
@@ -60,6 +71,10 @@ def minimax(board: list, side: int = cpu) -> dict:
 def get_mask(board: list, side: str) -> list:
     return [1 if board[i] == side else 0 for i in range(len(board))]
 
+def random_turn(board: list):
+    fc = free_cells(board)
+    turn = choice(fc)
+    return turn
 
 def conditions(board: list, side: str) -> bool:
     t = get_mask(board, side)
@@ -82,64 +97,125 @@ def conditions(board: list, side: str) -> bool:
     return False
 
 
-def check_winner(board: list):
+def check_winner(board: list, prompt: bool = True):
     global player
     global cpu
     fc = free_cells(map)
     if conditions(board, player):
+        if prompt: print('Вы победили!')
         return player
     elif conditions(board, cpu):
+        if prompt: print('Вы проиграли')
         return cpu
     elif len(fc) == 0:
+        if prompt: print('Ничья!')
         return -1
     return 0
 
 
 def draw_grid(board: list, show_idx: bool = False):
     for i in range(0, len(board), 3):
+        buffer = []
         for j in range(i, i + 3):
             if show_idx:
-                print(board[j], end=' ')
+                buffer.append(board[j])
             else:
-                print(
-                    f"{board[j] if board[j] == 'X' or board[j] == 'O' else ' '}", end=' ')
-        print()
+                buffer.append(f"{board[j] if board[j] == 'X' or board[j] == 'O' else ' '}")
+        print(' | '.join(buffer))
+        if i < len(board) - 3: print('---------')
 
 def set_first_player():
     global player
     global cpu
     global first_player
     r = rand(0, 1)
-    if rand == 1:
+    if r == 1:
         player, cpu = cpu, player
-    first_player = cpu
+        first_player = cpu
+    return f'{"Компьютер" if first_player == cpu else "Игрок"}'
+
+def set_difficulty(d: int):
+    global difficulty
+    difficulty = d
+
+def player_turn(board: list):
+    user_input = int(input('Куда ставить метку: '))
+    board[user_input] = player
+
+def cpu_turn(board: list):
+    global first_move
+    global difficulty
+    global D_EASY, D_HARD, D_HUMAN
+    if difficulty == D_EASY:
+        cpu_turn = random_turn(board)
+    else:
+        if first_move:
+            cpu_turn = random_turn(board)
+            first_move = False
+        else:
+            cpu_turn = minimax(board)['index']
+    board[cpu_turn] = cpu
+    print(f'Он поставил на {cpu_turn}!')
+
+clear()
+
+print('Выберите уровень сложности [0-1]: ', end='')
+set_difficulty(int(input()))
+
+clear()
+
+print(f'Вы выбрали {"легкий " if difficulty == D_EASY else "сложный "}уровень')
+
+sleep(2)
+
+
+print('Кидаем жребий...')
+sleep(1)
+fp = set_first_player()
+sleep(1)
+print(f'Перым ходит {first_player} ({fp})!')
+sleep(2)
+clear()
 
 while True:
-    user_input = int(input('Куда ставить метку: '))
-    map[user_input] = player
+    if first_player == player:
+        print('Ваш ход!')
+        sleep(2)
+        draw_grid(map)
+        player_turn(map)
+    else:
+        print('Ход соперника...')
+        sleep(1)
+        cpu_turn(map)
+    
     draw_grid(map)
+    sleep(3)
+    clear()
+    
     winner = check_winner(map)
-    if winner == player:
-        print('Вы победили!')
+    if winner != 0:
+        draw_grid(map)
+        sleep(5)
         break
-    elif winner == cpu:
-        print('Вы проиграли')
-        break
-    elif winner == -1:
-        print('Ничья!')
-        break
-    print('Ход соперника...')
-    cpu_turn = minimax(map)['index']
-    map[cpu_turn] = cpu
-    print(f'Он поставил на {cpu_turn}!')
+
+    if first_player == player:
+        print('Ход соперника...')
+        sleep(1)
+        cpu_turn(map)
+    else:
+        print('Ваш ход!')
+        sleep(2)
+        draw_grid(map)
+        player_turn(map)
+    
     draw_grid(map)
+    sleep(3)
+    clear()
+    
     winner = check_winner(map)
-    if winner == player:
-        print('Вы победили!')
+    if winner != 0:
+        draw_grid(map)
+        sleep(5)
         break
-    elif winner == cpu:
-        print('Вы проиграли')
-        break
-    elif winner == -1:
-        print('Ничья!')
-        break
+    
+    draw_grid(map)
