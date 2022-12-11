@@ -12,7 +12,6 @@ player = 'X'
 cpu = 'O'
 first_player = player
 difficulty = D_EASY
-
 first_move = True
 
 map = [i for i in range(9)]
@@ -102,10 +101,10 @@ def check_winner(board: list, prompt: bool = True):
     global cpu
     fc = free_cells(map)
     if conditions(board, player):
-        if prompt: print('Вы победили!')
+        if prompt: print('Игрок 1 победил!')
         return player
     elif conditions(board, cpu):
-        if prompt: print('Вы проиграли')
+        if prompt: print('Игрок 1 проиграл')
         return cpu
     elif len(fc) == 0:
         if prompt: print('Ничья!')
@@ -125,14 +124,13 @@ def draw_grid(board: list, show_idx: bool = False):
         if i < len(board) - 3: print('---------')
 
 def set_first_player():
-    global player
-    global cpu
-    global first_player
+    global cpu, player, first_player, difficulty
     r = rand(0, 1)
     if r == 1:
         player, cpu = cpu, player
         first_player = cpu
-    return f'{"Компьютер" if first_player == cpu else "Игрок"}'
+    is_cpu = '(cpu)' if difficulty == 3 else ''
+    return f'{f"Игрок 2{is_cpu}" if first_player == cpu else "Игрок 1"}'
 
 def set_difficulty(d: int):
     global difficulty
@@ -148,23 +146,29 @@ def cpu_turn(board: list):
     global D_EASY, D_HARD, D_HUMAN
     if difficulty == D_EASY:
         cpu_turn = random_turn(board)
-    else:
+    elif difficulty == D_HARD:
         if first_move:
             cpu_turn = random_turn(board)
             first_move = False
         else:
             cpu_turn = minimax(board)['index']
+    else:
+        cpu_turn = int(input('Второй игрок, куда ставим?'))
     board[cpu_turn] = cpu
-    print(f'Он поставил на {cpu_turn}!')
+    return cpu_turn
+
 
 clear()
 
-print('Выберите уровень сложности [0-1]: ', end='')
+print('Выберите уровень сложности [0 - 2; 2 - hotseat]: ', end='')
 set_difficulty(int(input()))
 
 clear()
 
-print(f'Вы выбрали {"легкий " if difficulty == D_EASY else "сложный "}уровень')
+if difficulty != D_HUMAN:
+    print(f'Вы выбрали {"легкий " if difficulty == D_EASY else "сложный "}уровень')
+else:
+    print('Вы выбрали игру с человеком')
 
 sleep(2)
 
@@ -179,14 +183,14 @@ clear()
 
 while True:
     if first_player == player:
-        print('Ваш ход!')
+        print('Игрок 1, ваш ход!')
         sleep(2)
         draw_grid(map)
         player_turn(map)
     else:
         print('Ход соперника...')
         sleep(1)
-        cpu_turn(map)
+        print(f'Он поставил на {cpu_turn(map)}!')
     
     draw_grid(map)
     sleep(3)
@@ -201,9 +205,9 @@ while True:
     if first_player == player:
         print('Ход соперника...')
         sleep(1)
-        cpu_turn(map)
+        print(f'Он поставил на {cpu_turn(map)}!')
     else:
-        print('Ваш ход!')
+        print('Игрок 1, ваш ход!')
         sleep(2)
         draw_grid(map)
         player_turn(map)
