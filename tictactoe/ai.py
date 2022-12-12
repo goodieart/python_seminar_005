@@ -100,7 +100,7 @@ def cpu_turn(board: list):
     else:
         fc = free_cells(board)
         while True:
-            cpu_turn = int(input('Второй игрок, куда ставим?'))
+            cpu_turn = int(input('Второй игрок, куда ставим? '))
             if not cpu_turn in fc:
                 print('Клетка занята!')
             else:

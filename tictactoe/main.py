@@ -65,7 +65,6 @@ def set_first_player():
     global cpu, player, first_player, difficulty
     r = ai.rand(0, 1)
     if r == 1:
-        #player, cpu = cpu, player
         first_player = cpu
     is_cpu = '(cpu)' if difficulty == 3 else ''
     return f'{f"Игрок 2{is_cpu}" if first_player == cpu else "Игрок 1"}'
